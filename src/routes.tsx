@@ -7,11 +7,12 @@ import {
 } from "./views/Dashboard";
 import MasterHS from "./views/Dashboard/MasterHS/MasterHSView";
 import BC30 from "./views/Dashboard/PEB/BC30View";
-import BC23 from "./views/Dashboard/TPB/BC23View";
 import BC25 from "./views/Dashboard/TPB/BC25View";
 import BC261 from "./views/Dashboard/TPB/BC261View";
 import BC262 from "./views/Dashboard/TPB/BC262View";
 import BC27Out from "./views/Dashboard/TPB/BC27OutView";
+import BC23CreateView from "./views/Dashboard/TPB/BC23/Actions/Create";
+import BC23ListView from "./views/Dashboard/TPB/BC23/Actions/List";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,8 +36,11 @@ const AppRoutes = () => (
         <Route path="masterHs" element={<MasterHS />} />
         
         <Route path="peb/bc30" element={<BC30 />} />
+        {/* BC 23 */}
+        <Route path="tpb/bc23" element={<BC23ListView />} />
+        <Route path="tpb/bc23/create" element={<BC23CreateView />} />
 
-        <Route path="tpb/bc23" element={<BC23 />} />
+
         <Route path="tpb/bc25" element={<BC25 />} />
         <Route path="tpb/bc261" element={<BC261 />} />
         <Route path="tpb/bc262" element={<BC262 />} />

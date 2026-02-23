@@ -20,6 +20,7 @@
   margin-top: 56px;
   overflow-y: auto;
   box-sizing: border-box;
+  transition: width 0.7s ease, margin-left 0.7s ease;
 }
 
 /* Sidebar */
@@ -144,9 +145,6 @@
   color: #fff;
 }
 
-
-
-
 .sidebar.minimized .sidebar-title {
   display: none;
 }
@@ -187,7 +185,7 @@
 }
 
 /* Navbar */
-.navbar {
+.navbar-main {
   width: calc(100vw - 220px);
   height: 40px;
   background: #fff;
@@ -199,6 +197,7 @@
   left: 220px;
   top: 0;
   z-index: 10;
+  transition: width 0.7s ease, left 0.7s ease;
 }
 
 .navbar-content {
@@ -296,7 +295,7 @@
   margin-left: 64px;
 }
 
-.dashboard-container.minimized .navbar {
+.dashboard-container.minimized .navbar-main {
   width: calc(100vw - 64px);
   left: 64px;
 }

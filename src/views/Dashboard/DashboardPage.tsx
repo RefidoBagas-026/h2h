@@ -162,7 +162,7 @@ const DashboardPage = () => {
           </ul>
         </nav>
       </aside>
-      <div className="navbar">
+      <div className="navbar-main">
         <div className="navbar-content">
           <button
             className="navbar-minimize-btn"
