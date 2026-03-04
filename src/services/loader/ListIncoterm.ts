@@ -1,0 +1,18 @@
+export const ListIncoterm = [
+    { kode: "CFR", nama: "Cost and Freight" },
+    { kode: "CIF", nama: "Cost, Insurance and Freight" },
+    { kode: "CIP", nama: "Carriage and Insurance Paid to" },
+    { kode: "CPT", nama: "Carriage Paid To" },
+    { kode: "DAF", nama: "Delivered At Frontier" },
+    { kode: "DAP", nama: "Delivered At Place" },
+    { kode: "DAT", nama: "Delivered At Terminal" },
+    { kode: "DDP", nama: "Delivered Duty Paid" },
+    { kode: "DDU", nama: "Delivered Duty Unpaid" },
+    { kode: "DEQ", nama: "Delivered Ex Quay" },
+    { kode: "DES", nama: "Delivered Ex Ship" },
+    { kode: "EXW", nama: "Ex Works" },
+    { kode: "FAS", nama: "Free Alongside Ship" },
+    { kode: "FCA", nama: "Free Carrier" },
+    { kode: "FOB", nama: "Free on Board" },
+    { kode: "LAN", nama: "LAINNYA" },
+].map(item => ({ label: `${item.kode} - ${item.nama}`, value: item.kode }));

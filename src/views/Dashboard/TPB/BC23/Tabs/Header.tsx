@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Card from "../../../../../components/Card";
 import { ListPelabuhan } from "../../../../../services/loader/ListPelabuhan";
 import { ListTujuanTPB } from "../../../../../services/loader/ListTujuanTPB";

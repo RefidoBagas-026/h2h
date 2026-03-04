@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ListDokumen } from "../../../../../services/loader/ListDokumen";
 import moment from "moment";
 import ModalManifest from "../Modals/ModalManifest";
+import { FaCircleExclamation } from "react-icons/fa6";
 
 const DokumenBC23Page = ({ data, setData, headers }: any) => {
 
@@ -37,55 +38,55 @@ const DokumenBC23Page = ({ data, setData, headers }: any) => {
         }));
     };
     const handleSimpan = () => {
-    if (!form.jenisDokumen || !form.nomorDokumen || !form.tanggalDokumen) {
-        alert("Lengkapi data terlebih dahulu");
-        return;
-    }
-    if (editingIndex !== null) {
-        // MODE EDIT
-        setData((prev: any) => {
-        const updated = [...(prev.dokumen || [])];
-        updated[editingIndex] = {
-            ...updated[editingIndex],
+        if (!form.jenisDokumen || !form.nomorDokumen || !form.tanggalDokumen) {
+            alert("Lengkapi data terlebih dahulu");
+            return;
+        }
+        if (editingIndex !== null) {
+            // MODE EDIT
+            setData((prev: any) => {
+            const updated = [...(prev.dokumen || [])];
+            updated[editingIndex] = {
+                ...updated[editingIndex],
+                ...form,
+            };
+            if(updated[editingIndex].jenisDokumen === "705" || updated[editingIndex].jenisDokumen === "740") {
+                setShowModal(true);
+                setHeadState((prev) => ({
+                    ...prev,
+                    noHostBl: form.nomorDokumen,
+                    tglHostBl: form.tanggalDokumen,
+                }));
+            }
+
+            return {
+                ...prev,
+                dokumen: updated,
+            };
+            });
+
+            setEditingIndex(null);
+        } else {
+            const newData = {
             ...form,
-        };
-        if(updated[editingIndex].jenisDokumen === "705" || updated[editingIndex].jenisDokumen === "740") {
-            setShowModal(true);
-            setHeadState((prev) => ({
+            seriDokumen: generateSeri(),
+            };
+            if(newData.jenisDokumen === "705" || newData.jenisDokumen === "740") {
+                setShowModal(true);
+                setHeadState((prev) => ({
+                    ...prev,
+                    noHostBl: form.nomorDokumen,
+                    tglHostBl: form.tanggalDokumen,
+                }));
+            }
+
+            setData((prev: any) => ({
                 ...prev,
-                noHostBl: form.nomorDokumen,
-                tglHostBl: form.tanggalDokumen,
-            }));
-        }
+                dokumen: [...(prev.dokumen || []), newData],
+        }))};
 
-        return {
-            ...prev,
-            dokumen: updated,
-        };
-        });
-
-        setEditingIndex(null);
-    } else {
-        const newData = {
-        ...form,
-        seriDokumen: generateSeri(),
-        };
-        if(newData.jenisDokumen === "705" || newData.jenisDokumen === "740") {
-            setShowModal(true);
-            setHeadState((prev) => ({
-                ...prev,
-                noHostBl: form.nomorDokumen,
-                tglHostBl: form.tanggalDokumen,
-            }));
-        }
-
-        setData((prev: any) => ({
-            ...prev,
-            dokumen: [...(prev.dokumen || []), newData],
-    }))};
-
-    setForm({ ...initForm });
-    setShowForm(false);
+        setForm({ ...initForm });
+        setShowForm(false);
     };
     useEffect(() => {
         setHeadState((prev) => ({
@@ -118,16 +119,22 @@ const handleDelete = (index: number) => {
   setData((prev: any) => {
     const updated = [...(prev.dokumen || [])];
     updated.splice(index, 1);
-
+        const reIndexed = updated.map((item, i) => ({
+        ...item,
+        seriDokumen: (i + 1).toString(),
+        }));
     return {
       ...prev,
-      dokumen: updated,
+      dokumen: reIndexed,
     };
   });
 };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "center" }}>
+        <div style={{ display: "flex", flexDirection: "row", fontWeight: 500, fontSize: 12, padding: 12, backgroundColor: "#fff7db", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <FaCircleExclamation style={{color:"orange"}}/> <span style={{color:"black"}}>Wajib melampirkan dokumen invoice dan dokumen B/L atau AWB</span>
+        </div>
       {showModal && <ModalManifest header={headState} data={data} setData={setData} />}
       {showForm && (
       <Card

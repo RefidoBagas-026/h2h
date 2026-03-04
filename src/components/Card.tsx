@@ -16,7 +16,7 @@ interface CardProps {
 }
 
 interface BaseFieldProps {
-  label: string;
+  label: React.ReactNode;
   name: string;
   value?: string | number | null;
   readonly?: boolean;
@@ -376,7 +376,7 @@ const CardNumeric: React.FC<NumericProps> = ({
         value={normalizedValue}
         readOnly={readonly}
         onChange={(e) => {
-          const raw = e.target.value.replace(/\D/g, "");
+          const raw = e.target.value;
 
           if (typeChanges === "number") {
             onChange?.(raw === "" ? 0 : Number(raw));

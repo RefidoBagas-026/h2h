@@ -12,12 +12,18 @@ import { entitasPemasok, entitasPemilik, entitasPengusaha} from "../../../../../
 import LoadingOverlay from "../../../../../components/LoadingOverlay";
 import Dokumen from "../Tabs/Dokumen";
 import Pengangkut from "../Tabs/Pengangkut";
+import Kemasan from "../Tabs/KemasanPetiKemas";
+import Transaksi from "../Tabs/Transaksi";
+import Barang from "../Tabs/Barang";
 
 const BC23CreateView = () => {
   const [isCompleteHeader, setIsCompleteHeader] = useState(false);
   const [isCompleteEntitas, setIsCompleteEntitas] = useState(false);
   const [isCompleteDokumen, setIsCompleteDokumen] = useState(false);
   const [isCompletePengangkut, setIsCompletePengangkut] = useState(false);
+  const [isCompleteKemasan, setIsCompleteKemasan] = useState(false);
+  const [isCompleteTransaksi, setIsCompleteTransaksi] = useState(false);
+  const [isCompleteBarang, setIsCompleteBarang] = useState(false);
   const [data, setData] = useState<BC23Request>({
         ...defaultBC23Request
     });
@@ -74,6 +80,15 @@ const BC23CreateView = () => {
         </Tab>
         <Tab eventKey="pengangkut" title="Pengangkut" tabClassName={isCompletePengangkut ? "text-success" : ""}>
           <Pengangkut data={data.pengangkut} setData={setData} headers={data} setIsComplete={setIsCompletePengangkut} />
+        </Tab>
+        <Tab eventKey="kemasan" title="Kemasan & Peti Kemas" tabClassName={isCompleteKemasan ? "text-success" : ""}>
+          <Kemasan data={data} setData={setData} setIsComplete={setIsCompleteKemasan} />
+        </Tab>
+        <Tab eventKey="transaksi" title="Transaksi" tabClassName={isCompleteTransaksi ? "text-success" : ""}>
+          <Transaksi data={data} setData={setData} setIsComplete={setIsCompleteTransaksi} />
+        </Tab>
+        <Tab eventKey="barang" title="Barang" tabClassName={isCompleteBarang ? "text-success" : ""}>
+          <Barang data={data.barang} setData={setData} headers={data} setIsComplete={setIsCompleteBarang} />
         </Tab>
       </Tabs>
     </Form>

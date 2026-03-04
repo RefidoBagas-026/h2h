@@ -21,7 +21,7 @@ export const ceisaService = {
         ceisaApi.get<number>("/refresh-token"),
 
     getRate: (kode: string) =>
-        ceisaApi.get<ApiResponse<any[]>>(`/getRate/${kode}`),
+        ceisaApi.get<ApiResponse<any[]>>(`/getRate?kode=${kode}`),
 
     getLartas: (id: number) =>
         ceisaApi.get<ApiResponse<any>>(`/getLartas/${id}`),

@@ -145,7 +145,7 @@ const PengangkutBC23Page = ({ data = [], setData, headers, setIsComplete }: any)
             label="Negara"
             name="kodeNegara"
             value={data.kodeNegara || ""}
-            list={ListNegara.map(item => ({ label: item.label, value: item.value }))}
+            list={ListNegara.map(item => ({ label: `${item.value} - ${item.label}`, value: item.value }))}
             onChange={(val) => updatePengangkut("kodeNegara", val)}
             error={!data.kodeNegara ? "Negara wajib diisi" : ""}
         />

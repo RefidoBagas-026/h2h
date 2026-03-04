@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaPlusCircle } from "react-icons/fa";
 import { bc23Service } from "../../../../../services/support/TPB/BC23/AccessBC23";
 import { useEffect, useState } from "react";
+import LoadingOverlay from "../../../../../components/LoadingOverlay";
 
 const BASE_ROUTE = "/dashboard/tpb/bc23";
 
@@ -20,6 +21,7 @@ interface BC23Item {
 
 const BC23View = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<BC23Item[]>([]);
 
   useEffect(() => {
@@ -38,62 +40,38 @@ const BC23View = () => {
     }));
 
     setData(mapped);
+    setIsLoading(false);
   };
 
   fetchData();
 }, []);
 
   return (
+    <div style={{ position: "relative", minHeight: "calc(100vh - 96px)" }}>
+      <LoadingOverlay
+        show={isLoading}
+        // text="Generating Nomor AJU..."
+      />
     <CustomTable<BC23Item>
       title="List BC 2.3"
       containerStyle={{ background: "#f9fafc" }}
       titleStyle={{ fontWeight: 500, fontSize: 18 }}
-      headerStyle={{ paddingBottom: 10, marginBottom: 0 }}
+      headerStyle={{ paddingBottom: 10, marginBottom: 0}}
       actionContainerStyle={{ gap: 15 }}
-      tableStyle={{ fontSize: 12, marginBottom: 0 }}
+      tableStyle={{ fontSize: 12, marginBottom: 0}}
       striped={false}
       bordered={false}
       columns={[
-        {
-          header: "Nomor Aju",
-          accessor: "nomorAju",
-          thStyle: { background: "#f1f3f5" },
-        },
-        {
-          header: "Tanggal Aju",
-          accessor: "tanggalAju",
-          thStyle: { background: "#f1f3f5" },
-        },
-        {
-          header: "Nomor Daftar",
-          accessor: "nomorDaftar",
-          thStyle: { background: "#f1f3f5" },
-        }
-        ,
-        {
-          header: "Tanggal Daftar",
-          accessor: "tanggalDaftar",
-          thStyle: { background: "#f1f3f5" },
-        },
-        {
-          header: "Supplier",
-          accessor: "namaPenerima",
-          thStyle: { background: "#f1f3f5" },
-        },
-        {
-          header: "Status",
-          accessor: "status",
-          thStyle: { background: "#f1f3f5" },
-        },
-        {
-          header: "Petugas",
-          accessor: "postedBy",
-          thStyle: { background: "#f1f3f5" },
-        },
+        { header: "Nomor Aju", accessor: "nomorAju" },
+        { header: "Tanggal Aju", accessor: "tanggalAju" },
+        { header: "Nomor Daftar", accessor: "nomorDaftar" },
+        { header: "Tanggal Daftar", accessor: "tanggalDaftar" },
+        { header: "Supplier", accessor: "namaPenerima" },
+        { header: "Status", accessor: "status" },
+        { header: "Petugas", accessor: "postedBy" },
         {
           header: "Action",
           accessor: "id",
-          thStyle: { background: "#f1f3f5" },
           render: (row) => (
             <Button size="sm" variant="outline-primary">
               Detail
@@ -115,7 +93,8 @@ const BC23View = () => {
         },
       ]}
     />
-  );
+    </div>);
+
 };
 
 export default BC23View;

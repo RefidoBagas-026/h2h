@@ -119,10 +119,10 @@ function CustomTable<T extends { id?: string | number }>({
         responsive={responsive}
         style={tableStyle}
       >
-        <thead>
+        <thead >
           <tr>
             {columns.map((col, index) => (
-              <th key={index} style={col.thStyle}>
+              <th key={index} style={{ ...col.thStyle, padding: "16px 8px" }}>
                 {col.header}
               </th>
             ))}
@@ -151,7 +151,7 @@ function CustomTable<T extends { id?: string | number }>({
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} style={{ textAlign: "center" }}>
+              <td colSpan={columns.length} style={{ textAlign: "center", padding: 40, background: "#f0f6ff" }}>
                 Data tidak tersedia
               </td>
             </tr>
