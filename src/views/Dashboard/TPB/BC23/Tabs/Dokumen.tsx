@@ -2,7 +2,7 @@ import { Button } from "react-bootstrap";
 import Card from "../../../../../components/Card";
 import { FaEdit, FaPlusCircle, FaTrash } from "react-icons/fa";
 import CustomTable from "../../../../../components/TableList";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ListDokumen } from "../../../../../services/loader/ListDokumen";
 import moment from "moment";
 import ModalManifest from "../Modals/ModalManifest";

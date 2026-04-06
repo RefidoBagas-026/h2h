@@ -1,5 +1,5 @@
 import Card from "../../../../../components/Card";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ListIncoterm } from "../../../../../services/loader/ListIncoterm";
 import { ListValuta } from "../../../../../services/loader/ListValuta";
 import { ceisaService } from "../../../../../services/support/Ceisa/AccessCeisa";
@@ -65,7 +65,7 @@ const TransaksiBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: 
             ndpbm: nilaiKurs,
             }));
         }).catch((err) => {
-            console.error("Gagal ambil rate valuta:", err);
+
         });
      };
 

@@ -5,7 +5,7 @@ import { ListTujuanTPB } from "../../../../../services/loader/ListTujuanTPB";
 import { ListKantor } from "../../../../../services/loader/ListKantor";
 
 const HeaderPageBC23 = ({ data, setData, setIsComplete, readOnlyView }: any) => {
-  console.log("HeaderPageBC23 received data:", data);
+
   useEffect(() => {
   const hasHeader = !!(
     data.nomorAju &&

@@ -51,10 +51,8 @@ const EntitasBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: an
   };
   const pemilik = getEntitas("7");
   const pemasok = getEntitas("5");
-  console.log("Data Entitas Pemasok (Kode 5):", pemasok);
   
   const pengusaha = getEntitas("3");
-  console.log("Data Entitas Pengusaha (Kode 3):", pengusaha);
 
   useEffect(() => {
     const hasEntitas = !!(

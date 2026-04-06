@@ -1,7 +1,7 @@
 import { Button, Dropdown } from "react-bootstrap";
 import CustomTable from "../../../../../components/TableList";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaEllipsisV, FaEye, FaPlusCircle } from "react-icons/fa";
+import { FaEdit, FaEllipsisV, FaEye, FaPlusCircle, FaPrint, FaTrash } from "react-icons/fa";
 import { bc23Service } from "../../../../../services/support/TPB/BC23/AccessBC23";
 import { useEffect, useState } from "react";
 import LoadingOverlay from "../../../../../components/LoadingOverlay";
@@ -38,7 +38,7 @@ const GetTPB23ById = async (id: number, route: string) => {
     const result = await bc23Service.getById(id);
     navigate(`${BASE_ROUTE}/${route}`, { state: { data: result.data } });
   } catch (error) {
-    console.error("Error fetching BC 2.3 by ID:", error);
+
     // Tangani error, misalnya tampilkan pesan error di UI
   } finally {
     setIsLoading(false);
@@ -112,6 +112,8 @@ const totalPages = Math.ceil(totalData / pageSize);
                   icon: <FaEye />,
                   onClick: () => GetTPB23ById(Number(row.id), "view"),
                 },
+                {label: "Cetak", icon: <FaPrint />, onClick: () => GetTPB23ById(Number(row.id), "print")},
+                {label: "Delete", icon: <FaTrash />, onClick: () => alert(`Delete ID ${row.id}`)}
               ]}
             />
           ),

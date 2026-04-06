@@ -257,7 +257,7 @@ const PungutanBC23Page = ({ data, setData, dataPungutan, setIsComplete, readOnly
     }));
     setIsComplete?.(true);
   };
-  console.log("Data pungutan yang dihitung:", tableData);
+
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
