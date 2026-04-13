@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { icons } from "./SidebarIcons";
 import "./DashboardPage.css";
 import { FaHourglassStart } from "react-icons/fa6";
+import { preloadRoute } from "../../routeLoaders";
 
 const menuItems = [
   {
@@ -158,6 +159,8 @@ const DashboardPage = () => {
                       <button
                         className="sidebar-menu-btn"
                         onClick={() => handleSubMenu(item.key)}
+                        onMouseEnter={() => preloadRoute(item.path)}
+                        onFocus={() => preloadRoute(item.path)}
                         title={item.label}
                       >
                         <Icon />
@@ -179,7 +182,12 @@ const DashboardPage = () => {
                                   location.pathname === child.path ? "active" : ""
                                 }
                               >
-                                <Link to={child.path} title={child.label}>
+                                <Link
+                                  to={child.path}
+                                  title={child.label}
+                                  onMouseEnter={() => preloadRoute(child.path)}
+                                  onFocus={() => preloadRoute(child.path)}
+                                >
                                   <ChildIcon />
                                   <span>{child.label}</span>
                                 </Link>
@@ -190,7 +198,12 @@ const DashboardPage = () => {
                       )}
                     </>
                   ) : (
-                    <Link to={item.path} title={item.label}>
+                    <Link
+                      to={item.path}
+                      title={item.label}
+                      onMouseEnter={() => preloadRoute(item.path)}
+                      onFocus={() => preloadRoute(item.path)}
+                    >
                       <Icon />
                       {!minimized && <span>{item.label}</span>}
                     </Link>

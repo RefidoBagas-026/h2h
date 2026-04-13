@@ -3,7 +3,6 @@ import Header from "../Tabs/Header";
 import Entitas from "../Tabs/Entitas";
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Form } from "react-bootstrap";
 import Card from "../../../../../components/Card";
 import GenerateAju from "../GenerateAju";
