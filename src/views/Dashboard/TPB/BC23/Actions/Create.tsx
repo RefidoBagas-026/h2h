@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../Tabs/Header";
 import Entitas from "../Tabs/Entitas";
 import Tabs from 'react-bootstrap/Tabs';
@@ -85,7 +85,7 @@ const BC23CreateView = () => {
               try {
               const bc23ToSave = { ...data };
               console.log("Data yang akan disimpan:", bc23ToSave);
-              await bc23Service.postTPB(bc23ToSave).then((response) => {
+              await bc23Service.postTPB(bc23ToSave).then(() => {
                 navigate(`${BASE_ROUTE}`, { state: { refresh: true, success: "Data BC 2.3 berhasil disimpan!" } });
               });
           }catch (error) {

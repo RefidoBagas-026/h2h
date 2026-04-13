@@ -95,7 +95,7 @@ const printBC23 = async (id: number) => {
   try {
     const result = await bc23Service.getById(id);
     const nomorAju = result.data.nomorAju;
-    await ceisaService.printExcelTPB(nomorAju).then((response) => {
+    await ceisaService.printExcelTPB(nomorAju).then(() => {
       setMessageResponse({ error: null, success: "BC 2.3 berhasil diunduh!" });
     });
   } catch (error) {

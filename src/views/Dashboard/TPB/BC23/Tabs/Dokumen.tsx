@@ -20,12 +20,6 @@ const DokumenBC23Page = ({ data, setData, headers, setIsComplete, readOnlyView }
         tanggalDokumen: "",
     };
     const [dataDokumen, setDataDokumen] = useState<any>(null);
-    const [headState, setHeadState] = useState(() => ({
-        kodeKantor: "",
-        namaImportir: "",
-        noHostBl: "",
-        tglHostBl: "",
-    }));
 
     const [showModal, setShowModal] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -66,9 +60,6 @@ const [isLoading, setIsLoading] = useState(false);
             kodeKantor: headers.kodeKantorBongkar,
             namaImportir: headers?.entitas?.find((x: any) => x.kodeEntitas === "3")?.namaEntitas || "",
         };
-
-        setHeadState(head);
-
         try {
             setIsLoading(true);
             res = await ceisaService.getManifes(
@@ -188,7 +179,7 @@ useEffect(() => {
         <div style={{ display: "flex", flexDirection: "row", fontWeight: 500, fontSize: 12, padding: 12, backgroundColor: "#fff7db", alignItems: "center", gap: 6, marginBottom: 8 }}>
             <FaCircleExclamation style={{color:"orange"}}/> <span style={{color:"black"}}>Wajib melampirkan dokumen invoice dan dokumen B/L atau AWB</span>
         </div>
-      {showModal && dataDokumen && <ModalManifest header={dataDokumen} setHeader={setDataDokumen} data={data} setData={setData} setModal={setShowModal} respon={dataDokumen.data.respon} />}
+      {showModal && dataDokumen && <ModalManifest header={dataDokumen} setHeader={setDataDokumen} setData={setData} setModal={setShowModal} respon={dataDokumen.data.respon} />}
       {showForm && (
       <Card
             title="Tambah Dokumen"

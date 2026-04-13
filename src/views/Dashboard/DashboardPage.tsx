@@ -3,7 +3,6 @@ import { useAuth } from "../../hooks";
 import { useEffect, useState } from "react";
 import { icons } from "./SidebarIcons";
 import "./DashboardPage.css";
-import { FaHourglass, FaTimesCircle } from "react-icons/fa";
 import { FaHourglassStart } from "react-icons/fa6";
 
 const menuItems = [

@@ -2,8 +2,8 @@ import { FaCircleExclamation, FaSquareCheck } from "react-icons/fa6";
 import Card from "../../../../../components/Card";
 import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import CustomTable from "../../../../../components/TableList";
-import { FaPlusCircle, FaSquare, FaTrash, FaTrashAlt, FaTrashRestore } from "react-icons/fa";
-import { use, useEffect, useState } from "react";
+import { FaPlusCircle, FaSquare, FaTrash} from "react-icons/fa";
+import { useEffect, useState } from "react";
 import type { Barang } from "../../../../../models/BC23Model/BC23.types";
 import { createInitialBarang } from "../../../../../models/BC23Model/DataModel/BarangModels";
 import { ListKategoriBarang } from "../../../../../services/loader/ListKategoriBarang";
@@ -20,7 +20,7 @@ import moment from "moment";
 
 export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex = null, editData = null, readOnlyView}: any) => {
   const [barang, setBarang] = useState<Barang>(editData ? editData : createInitialBarang());
-  const [showForm, setShowForm] = useState(false);
+  // const [showForm, setShowForm] = useState(false);
   const [posTarifList, setPosTarifList] = useState<{ label: string; value: string | number, remark?: string }[]>([]);
   const [hsSearch, setHsSearch] = useState("");
   const [checkedBMT, setCheckedBMT] = useState(false);
@@ -215,7 +215,7 @@ console.log("Render ModalBarang, barang:", barang);
         remark: item.HSRemark,
       }));
 
-      setPosTarifList((prev) => {
+      setPosTarifList(() => {
         const currentValue = barang.posTarif;
 
         let combined = [...mapped];
@@ -280,7 +280,6 @@ console.log("Render ModalBarang, barang:", barang);
     const [IsSpecificBMI, setIsSpecificBMI] = useState(false);
     const [IsSpecificBMP, setIsSpecificBMP] = useState(false);
     const [IsSpecificBMTP, setIsSpecificBMTP] = useState(false);
-    const [IsSpecificCukai, setIsSpecificCukai] = useState(false);
     useEffect(() => {
         const list = barang.barangTarif ?? [];
 
@@ -317,12 +316,6 @@ console.log("Render ModalBarang, barang:", barang);
         setIsSpecificBMI(prev => prev !== bmi ? bmi : prev);
         setIsSpecificBMP(prev => prev !== bmp ? bmp : prev);
         setIsSpecificBMTP(prev => prev !== bmtp ? bmtp : prev);
-        const cukai = list.some(
-            (item: any) =>
-                item.kodeJenisPungutan === "Cukai" &&
-                item.kodeJenisTarif === "2"
-        );
-        setIsSpecificCukai(prev => prev !== cukai ? cukai : prev);
     }, [barang.barangTarif]);
 
     const getTarif = (kode: string) => {
@@ -639,7 +632,7 @@ console.log("Render ModalBarang, barang:", barang);
                   style={{ height:"100%"}}
                   headerCustom={(
                         readOnlyView ? null : (
-                              <Button size="sm" variant="primary" style={{ display: "flex", alignItems:"center", justifyContent:"center", gap: 4 , borderRadius: 0, fontSize: 12 }} onClick={() => setShowForm(true)}>
+                              <Button size="sm" variant="primary" style={{ display: "flex", alignItems:"center", justifyContent:"center", gap: 4 , borderRadius: 0, fontSize: 12 }}>
                                   <FaPlusCircle/><span style={{paddingTop:1}} onClick={() => setShowDokumenLartas(true)}>Tambah</span>                
                               </Button>
                           )
@@ -660,7 +653,7 @@ console.log("Render ModalBarang, barang:", barang);
                           header: "Action",
                           accessor: "id",
                           tdStyle: { minWidth: 100 },
-                          render: (row, index) => (
+                          render: ( index) => (
                               <div style={{ display: "flex", gap: 6 }}>
                               <OverlayTrigger
                                 placement="top"

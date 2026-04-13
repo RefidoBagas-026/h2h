@@ -1,5 +1,4 @@
 import { ceisaApi } from "../../api.instances";
-import type { TPB } from "../TPB/BC23/AccessBC23";
 
 export interface Ceisa {
   id: number;

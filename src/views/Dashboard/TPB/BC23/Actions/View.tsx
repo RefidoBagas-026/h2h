@@ -25,7 +25,6 @@ import { useLocation } from "react-router-dom";
 const BC23View = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCompleteAll, setIsCompleteAll] = useState(false);
   const [isCompleteHeader, setIsCompleteHeader] = useState(false);
   const [isCompleteEntitas, setIsCompleteEntitas] = useState(false);
   const [isCompleteDokumen, setIsCompleteDokumen] = useState(false);
@@ -79,10 +78,9 @@ const BC23View = () => {
         }
     }, []);
 
-    useEffect(() => {
-        const allComplete = isCompleteHeader && isCompleteEntitas && isCompletePengangkut && isCompleteKemasan && isCompleteTransaksi  && isCompletePernyataan;
-        setIsCompleteAll(allComplete);
-    }, [isCompleteHeader, isCompleteEntitas, isCompletePengangkut, isCompleteKemasan, isCompleteTransaksi, isCompletePernyataan]);
+    // useEffect(() => {
+    //     const allComplete = isCompleteHeader && isCompleteEntitas && isCompletePengangkut && isCompleteKemasan && isCompleteTransaksi  && isCompletePernyataan;
+    // }, [isCompleteHeader, isCompleteEntitas, isCompletePengangkut, isCompleteKemasan, isCompleteTransaksi, isCompletePernyataan]);
     
   return (
     <div style={{ position: "relative", minHeight: "calc(100vh - 96px)" }}>

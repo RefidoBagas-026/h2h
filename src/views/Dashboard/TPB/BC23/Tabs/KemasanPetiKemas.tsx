@@ -1,4 +1,4 @@
-import { Button, Tab, Tabs } from "react-bootstrap";
+import { Button} from "react-bootstrap";
 import Card from "../../../../../components/Card";
 import { FaEdit, FaPlusCircle, FaTrash } from "react-icons/fa";
 import CustomTable from "../../../../../components/TableList";
@@ -12,17 +12,15 @@ import { ListJenisKemasan } from "../../../../../services/loader/ListJenisKemasa
 import { FaCircleExclamation } from "react-icons/fa6";
 
 const KemasanBC23Page = ({ data, setData, setIsComplete, readOnlyView }: any) => {
-    const [activeTab, setActiveTab] = useState("kemasan");
     const [activeForm, setActiveForm] = useState<"kemasan" | "petiKemas" | null>(null);
  
     const [editingKemasanIndex, setEditingKemasanIndex] = useState<number | null>(null);
     const [editingPetiKemasIndex, setEditingPetiKemasIndex] = useState<number | null>(null);
 
-    const handleEditKemasan = (row: any, index: number) => {
+    const handleEditKemasan = (index: number) => {
         setEditingKemasanIndex(index);
         setEditingPetiKemasIndex(null);
         setActiveForm("kemasan");
-        setActiveTab("kemasan");
     };
 
   const handleDeleteKemasan = (index: number) => {
@@ -38,11 +36,10 @@ const KemasanBC23Page = ({ data, setData, setIsComplete, readOnlyView }: any) =>
     });
   };
 
-  const handleEditPetiKemas = (row: any, index: number) => {
+  const handleEditPetiKemas = (index: number) => {
     setEditingPetiKemasIndex(index);
     setEditingKemasanIndex(null);
     setActiveForm("petiKemas");
-    setActiveTab("petiKemas");
   };
 
   const handleDeletePetiKemas = (index: number) => {
@@ -141,13 +138,13 @@ const KemasanBC23Page = ({ data, setData, setIsComplete, readOnlyView }: any) =>
                                 accessor: "id",
                                 thStyle: { width: 60, textAlign: "center" },
                                 tdStyle: { width: 60, textAlign: "center" },
-                                render: (row, index) => (
+                                render: (index : any) => (
                                     !readOnlyView && (
                                     <div style={{ display: "flex", gap: 6 }}>
                                     <Button
                                         size="sm"
                                         variant="warning"
-                                        onClick={() => handleEditKemasan(row, index)}
+                                        onClick={() => handleEditKemasan(index)}
                                     >
                                         <FaEdit />
                                     </Button>
@@ -205,13 +202,13 @@ const KemasanBC23Page = ({ data, setData, setIsComplete, readOnlyView }: any) =>
                                 accessor: "id",
                                 thStyle: { width: 60, textAlign: "center" },
                                 tdStyle: { width: 60, textAlign: "center" },
-                                render: (row, index) => (
+                                render: (index: any) => (
                                     !readOnlyView && (
                                     <div style={{ display: "flex", gap: 6 }}>
                                     <Button
                                         size="sm"
                                         variant="warning"
-                                        onClick={() => handleEditPetiKemas(row, index)}
+                                        onClick={() => handleEditPetiKemas(index)}
                                     >
                                         <FaEdit />
                                     </Button>
@@ -238,7 +235,6 @@ const KemasanBC23Page = ({ data, setData, setIsComplete, readOnlyView }: any) =>
                 </Card>
         </Card>
     </div>
-          
   );
 };
 export default KemasanBC23Page;

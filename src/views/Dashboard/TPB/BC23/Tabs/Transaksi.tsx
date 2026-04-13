@@ -65,8 +65,12 @@ const TransaksiBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: 
             ...prev,
             ndpbm: nilaiKurs,
             }));
-        }).catch((err) => {
-
+        }).catch(() => {
+            setData((prev: any) => ({
+                ...prev,
+                ndpbm: ""
+            }));
+            alert("Gagal mendapatkan nilai kurs untuk valuta " + val);
         });
      };
 

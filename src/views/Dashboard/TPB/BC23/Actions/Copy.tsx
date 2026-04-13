@@ -96,7 +96,7 @@ const handleSimpan = async ()  => {
         try {
             const bc23ToSave = { ...data };
             console.log("Data yang akan disimpan:", bc23ToSave);
-                await bc23Service.postTPB(bc23ToSave).then((response) => {
+                await bc23Service.postTPB(bc23ToSave).then(() => {
                     navigate(`${BASE_ROUTE}`, { state: { refresh: true, success: "Data BC 2.3 berhasil disimpan!" } });
             });
         }catch (error) {

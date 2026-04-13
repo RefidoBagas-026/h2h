@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { FaCircleExclamation } from "react-icons/fa6";
 import { ModalBarang } from "../Modals/ModalBarang";
 
-const BarangBC23Page = ({ data, setData, headers, setShowModals, setIsComplete, readOnlyView }: any) => {
+const BarangBC23Page = ({ data, setData, headers, setIsComplete, readOnlyView }: any) => {
         // Fungsi untuk menjumlahkan semua netto barang
         const getTotalNettoBarang = () => Array.isArray(data) ? data.reduce((sum, item) => sum + (Number(item.netto) || 0), 0) : 0;
 

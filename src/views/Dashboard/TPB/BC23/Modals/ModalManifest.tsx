@@ -9,7 +9,7 @@ import { ListUkuranKontainer } from "../../../../../services/loader/ListUkuranKo
 import { Button } from "react-bootstrap";
 import { FaCircleExclamation } from "react-icons/fa6";
 import moment from "moment";
-const ModalManifest = ({ header, setHeader, data, setData, setModal, respon }: any) => {
+const ModalManifest = ({ header, setHeader, setData, setModal, respon }: any) => {
     const isDokumenDitutup = respon?.includes("Dokumen Sudah Ditutup");
     const getNamaTipeKontainer = (kode: string) => {
             const kontainer = ListTipeKontainer.find((item) => item.value === kode);
@@ -244,7 +244,7 @@ const ModalManifest = ({ header, setHeader, data, setData, setModal, respon }: a
                                 actionContainerStyle={{ gap: 15 }}
                                 tableStyle={{ fontSize: 12, marginBottom: 0 }}
                                 columns={[
-                                    { header: "Seri", accessor: "seriKontainer",thStyle: { textAlign: "center" }, tdStyle: { textAlign: "center" }, render: (row, index) => index + 1 },
+                                    { header: "Seri", accessor: "seriKontainer",thStyle: { textAlign: "center" }, tdStyle: { textAlign: "center" }, render: ( index : any) => index + 1 },
                                     { header: "Nomor", accessor: "noKontainer"},
                                     { header: "Ukuran", accessor: "ukuranKontainer", render: (row) => getUkuranKontainer(row.ukuranKontainer) },
                                     { header: "Jenis", accessor: "jenisKontainer", render: (row) => getNamaJenisKontainer(row.jenisKontainer) },

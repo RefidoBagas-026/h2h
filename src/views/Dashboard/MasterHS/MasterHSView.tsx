@@ -7,14 +7,12 @@ import { Button } from "react-bootstrap";
 import { FaEdit, FaEye, FaPlusCircle, FaTrash } from "react-icons/fa";
 import ActionDropdown from "../../../components/ActionDropdown";
 import { FaEllipsisVertical } from "react-icons/fa6";
-import { useNavigate } from "react-router";
 import CustomPagination from "../../../components/CustomPagination";
 import SearchBar from "../../../components/SearchBar";
 import FloatingNotification from "../../../components/FloatingNotification";
 
 const MasterHSView = () => {
 const [modalShow, setModalShow] = useState(false);
-const navigate = useNavigate();
   const [data, setData] = useState<any[]>([]);
   const [dataForm, setDataForm] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -24,11 +22,11 @@ const navigate = useNavigate();
   const [isViewMode, setIsViewMode] = useState(false);
   const [messageResponse, setMessageResponse] = useState<{ error: string | null , success: string | null } | null>(null);
 
-  const handleEdit = (row: any, index: number) => {
+  const handleEdit = (row: any) => {
     setDataForm({ Id: row.Id, HSNo: row.HSNo, HSRemark: row.HSRemark });
     setModalShow(true);
   }
-  const handleView = (row: any, index: number) => {
+  const handleView = (row: any) => {
     setDataForm({ Id: row.Id, HSNo: row.HSNo, HSRemark: row.HSRemark });
     setIsViewMode(true);
     setModalShow(true);
@@ -52,7 +50,7 @@ const navigate = useNavigate();
             setMessageResponse({ success: null, error: "Gagal menghapus data Master HS." });
           }
         })
-        .catch((error) => {
+        .catch(() => {
           setMessageResponse({ success: null, error: "Gagal menghapus data Master HS." });
         });
     }
@@ -194,20 +192,20 @@ const totalPages = Math.ceil(totalData / pageSize);
         { header: "Kode HS", accessor: "HSNo" },
         { header: "Uraian", accessor: "HSRemark" },
         { header: "Aksi", accessor: "Id",
-          render: (row, index) => (
+          render: (row) => (
             <ActionDropdown
               label={<FaEllipsisVertical />}
               actions={[
                 {
                   label: "Edit",
                   icon: <FaEdit />,
-                  onClick: () => handleEdit(row,index),
+                  onClick: () => handleEdit(row),
                   condition: () => row.isUsed === false,
                 },
                 {
                   label: "View",
                   icon: <FaEye />,
-                  onClick: () => handleView(row, index),
+                  onClick: () => handleView(row),
                 },
                 {
                   label: "Delete",

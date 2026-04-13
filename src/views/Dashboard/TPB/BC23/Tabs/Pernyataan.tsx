@@ -26,7 +26,7 @@ const PernyataanBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }:
             value={data.kotaTtd}
             onChange={(val) => setData((prev: any) => ({ ...prev, kotaTtd: val }))}
             error={!data.kotaTtd ? "Tempat wajib diisi" : ""}
-            readonly={true}
+            readonly={readOnlyView}
           />
           <Card.DatePicker
         label={"Tanggal"}
@@ -43,7 +43,7 @@ const PernyataanBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }:
             }));
         }}
         error={!data?.tanggalTtd ? "Tanggal wajib diisi" : ""}
-        readonly={true}
+        readonly={readOnlyView}
         />
         </Card>
         <Card
@@ -56,7 +56,7 @@ const PernyataanBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }:
             value={data.namaTtd}
             onChange={(val) => setData((prev: any) => ({ ...prev, namaTtd: val }))}
             error={!data.namaTtd ? "Nama wajib diisi" : ""}
-            readonly={true}
+            readonly={readOnlyView}
           />
           <Card.Input
             label="Jabatan"
@@ -64,7 +64,7 @@ const PernyataanBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }:
             value={data.jabatanTtd}
             onChange={(val) => setData((prev: any) => ({ ...prev, jabatanTtd: val }))}
             error={!data.jabatanTtd ? "Jabatan wajib diisi" : ""}
-            readonly={true}
+            readonly={readOnlyView}
           />
         </Card>
     </div>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ListDokumen } from "../../../../../services/loader/ListDokumen";
 import moment from "moment";
 
-export const ModalDokumenLartas = ({data, setData, readOnlyView, dataDokumen, sethideModal }: any) => {
+export const ModalDokumenLartas = ({data, setData, dataDokumen, sethideModal }: any) => {
     const handleSaveSelectedDokumen = () => {
         const selected = mappedData.filter((item) => item.IsSelected);
         setData((prev: any) => ({
@@ -53,7 +53,7 @@ export const ModalDokumenLartas = ({data, setData, readOnlyView, dataDokumen, se
                 containerStyle={{ background: "#f9fafc", height: "300px" }}
                 columns={[
                     { header: "", accessor: "IsSelected", //ceklist atau icon lain
-                        render: (row, index) => (
+                        render: (row) => (
                             <div
                             style={{
                                 display: "flex",
