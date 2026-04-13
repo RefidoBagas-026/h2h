@@ -1,8 +1,8 @@
 import { FaCircleExclamation, FaSquareCheck } from "react-icons/fa6";
 import Card from "../../../../../components/Card";
-import { Button } from "react-bootstrap";
+import { Button, Modal, OverlayTrigger, Tooltip } from "react-bootstrap";
 import CustomTable from "../../../../../components/TableList";
-import { FaPlusCircle, FaSquare } from "react-icons/fa";
+import { FaPlusCircle, FaSquare, FaTrash, FaTrashAlt, FaTrashRestore } from "react-icons/fa";
 import { use, useEffect, useState } from "react";
 import type { Barang } from "../../../../../models/BC23Model/BC23.types";
 import { createInitialBarang } from "../../../../../models/BC23Model/DataModel/BarangModels";
@@ -13,11 +13,19 @@ import { ListSatuanBarang } from "../../../../../services/loader/ListSatuanBaran
 import { ListJenisTarif } from "../../../../../services/loader/ListJenisTarif";
 import { ListPungutan } from "../../../../../services/loader/ListPungutan";
 import { ListFalsitasTarif } from "../../../../../services/loader/ListFasilitasTarif";
+import { masterHsService } from "../../../../../services/support/MasterHS/MasterHs";
+import ModalDokumenLartas from "./ModalDokumenLartas";
+import { ListDokumen } from "../../../../../services/loader/ListDokumen";
+import moment from "moment";
 
 export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex = null, editData = null, readOnlyView}: any) => {
   const [barang, setBarang] = useState<Barang>(editData ? editData : createInitialBarang());
   const [showForm, setShowForm] = useState(false);
+  const [posTarifList, setPosTarifList] = useState<{ label: string; value: string | number, remark?: string }[]>([]);
+  const [hsSearch, setHsSearch] = useState("");
   const [checkedBMT, setCheckedBMT] = useState(false);
+  const [showDokumenLartas, setShowDokumenLartas] = useState(false);
+  
       // Set checkedBMT true saat edit jika ada BMAD, BMTP, BMI, BMP
       useEffect(() => {
         if (editData && Array.isArray(editData.barangTarif)) {
@@ -28,21 +36,35 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
         }
       }, [editData]);
   const [checkedCukai, setCheckedCukai] = useState(false);
-
+const getNamaDokumen = (kode: string) => {
+            const dokumen = ListDokumen.find((item) => item.key === kode);
+            return dokumen ? `${dokumen.key} - ${dokumen.value}` : "";
+        };
   // Jika editData berubah (misal user klik edit), isi form dengan data yang diedit
   useEffect(() => {
     if (editData) {
       setBarang(editData);
+      if (editData?.posTarif) {
+        setHsSearch(editData.posTarif);
+
+        // inject ke list awal supaya tidak kosong
+        setPosTarifList((prev) => [
+          {
+            value: editData.posTarif,
+            label: editData.posTarif,
+          },
+          ...prev,
+        ]);
+      }
     } else {
       setBarang(createInitialBarang());
     }
   }, [editData]);
     
-    
     const generateSeri = () => {
-        if (!data || data.length === 0) return "1";
+        if (!data || data.length === 0) return 1;
         const maxSeri = Math.max(...data.map((item: any) => parseInt(item.seriBarang)));
-        return (maxSeri + 1).toString();
+        return (maxSeri + 1);
     }
     // Simpan data baru atau update data jika edit
     const handleSimpan = () => {
@@ -69,7 +91,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
           ...prev,
           barang: [
             ...(prev.barang || []),
-            { ...barang, seriBarang: nextSeri },
+            { ...barang, seriBarang: nextSeri, idBarang:"" },
           ],
         }));
       }
@@ -83,23 +105,6 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
             [field]: value,
         }));
     }
-    // const updateBarangTarifBM = (field: string, value: any) => {
-    //     setBarang((prev: any) => {
-    //         const list = prev.barangTarif ?? [];
-    //         if (list.length === 0) {
-    //             return {
-    //                 ...prev,
-    //                 barangTarif: [{ [field]: value }],
-    //             };
-    //         }
-    //         return {
-    //             ...prev,
-    //             barangTarif: list.map((item: any, i: number) =>
-    //                 i === 0 ? { ...item, [field]: value } : item
-    //             ),
-    //         };
-    //     });
-    // };
     const isEmptyTarif = (item: any) => {
         const isSpesifik = item.kodeJenisTarif === "2";
 
@@ -138,8 +143,17 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
 
             list.push({
                 kodeJenisPungutan,
+                jumlahSatuan: 0,
+                kodeSatuanBarang: "",
+                nilaiBayar: 0,
+                nilaiFasilitas: 0,
+                nilaiSudahDilunasi: 0,
+                seriBarang: barang.seriBarang,
+                kodeJenisTarif: "1",
+                tarifFasilitas: 100,
             });
 
+            console.log("List setelah pilih jenis:", list);
             return {
                 ...prev,
                 barangTarif: list,
@@ -151,7 +165,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
             list.push({
                 kodeJenisPungutan,
                 [field]: value,
-            });
+                jumlahSatuan: 0,
+                kodeSatuanBarang: "",
+                nilaiBayar: 0,
+                nilaiFasilitas: 0,
+                nilaiSudahDilunasi: 0,
+                seriBarang: barang.seriBarang,
+                kodeJenisTarif: field === "kodeJenisTarif" ? value : "1",
+                tarifFasilitas: field === "tarifFasilitas" ? value : 100,
+              });
         } else {
             list[index] = {
                 ...list[index],
@@ -173,15 +195,52 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
         };
     });
 };
-
+console.log("Render ModalBarang, barang:", barang);
+    const [remarkHS, setRemarkHS] = useState("");
     const pushUraianHS = () => {
-        let generatedUraian = barang.kodeBarang;
+        let generatedUraian = remarkHS || "";
         updateBarang("uraian", generatedUraian);
+    }
+    const getPosTarif = async (query: string) => {
+      const response = await masterHsService.getHs(1, 10, query, null);
+      return response.data ?? [];
     }
 
     useEffect(() => {
-      if (!barang || !header) return;
-      
+  const delay = setTimeout(() => {
+    getPosTarif(hsSearch).then((data: any[]) => {
+      const mapped = data.map((item: any) => ({
+        value: item.HSNo,
+        label: `${item.HSNo} - ${item.HSRemark}`,
+        remark: item.HSRemark,
+      }));
+
+      setPosTarifList((prev) => {
+        const currentValue = barang.posTarif;
+
+        let combined = [...mapped];
+
+        if (currentValue) {
+          const exist = mapped.find((i) => i.value === currentValue);
+
+          if (!exist) {
+            combined = [
+              { value: currentValue, label: currentValue, remark: "" },
+              ...mapped,
+            ];
+          }
+        }
+
+        return uniqueByValue(combined);
+      });
+    });
+  }, 300);
+
+  return () => clearTimeout(delay);
+}, [hsSearch]);
+
+    const calculateHarga = (barang: any, header: any) => {
+      if (!barang || !header) return {};
       const persenatase = header.fob ? header.freight / header.fob : 0;
       const nilaiTambah = barang.nilaiBarang * (header.biayaTambahan / 100) - barang.nilaiBarang * (header.biayaPengurang / 100);
       const fob = barang.nilaiBarang + nilaiTambah;
@@ -191,39 +250,26 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
       const hargaSatuan = barang.jumlahSatuan ? Math.ceil((fob / barang.jumlahSatuan) * 100) / 100 : 0;
       const cifRupiah = cif * header.ndpbm;
 
-      setBarang((prev: any) => {
-      if (
-        prev.fob === fob &&
-        prev.cif === cif &&
-        prev.hargaSatuan === hargaSatuan &&
-        prev.cifRupiah === cifRupiah &&
-        prev.freight === freight &&
-        prev.asuransi === asuransi &&
-        prev.nilaiTambah === nilaiTambah
-      ) {
-        return prev; // tidak update → tidak trigger ulang
-      }
+      return { fob, cif, hargaSatuan, cifRupiah, freight, asuransi, nilaiTambah };
+    };
 
-      return {
-        ...prev,
-        fob,
-        cif,
-        hargaSatuan,
-        cifRupiah,
-        freight,
-        asuransi,
-        nilaiTambah,
-      };
-    });
-  }, [
-    barang.nilaiBarang,
-    barang.jumlahSatuan,
-    header.freight,
-    header.fob,
-    header.ndpbm,
-    header.biayaTambahan,
-    header.biayaPengurang,
-  ]);
+    useEffect(() => {
+        if (!barang || !header) return;
+        
+        const result = calculateHarga(barang, header);
+        setBarang((prev: any) => ({
+          ...prev,
+          ...result,
+        }));
+    }, [
+      barang.nilaiBarang,
+      barang.jumlahSatuan,
+      header.freight,
+      header.fob,
+      header.ndpbm,
+      header.biayaTambahan,
+      header.biayaPengurang,
+    ]);
 
 
   const bmItem = barang.barangTarif?.find((item: any) =>
@@ -279,11 +325,49 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
         setIsSpecificCukai(prev => prev !== cukai ? cukai : prev);
     }, [barang.barangTarif]);
 
-    useEffect(() => {
-      barang.ndpbm = header.ndpbm;
-    }, [header.ndpbm]);
+    const getTarif = (kode: string) => {
+      return barang.barangTarif?.find((item: any) => item.kodeJenisPungutan === kode);
+    };
+    const uniqueByValue = (arr: any[]) => {
+      const map = new Map();
+      arr.forEach(item => {
+        map.set(item.value, item);
+      });
+      return Array.from(map.values());
+    };
+
+    //jika barang.barangDokumen Ada isi maka tampilkan data di CustomTable, jika tidak tampilkan data kosong filter dari header.dokumen berdasarkan seriBarang
+    const dataDokumen = barang.barangDokumen && barang.barangDokumen.length > 0 ? barang.barangDokumen.map((bd: any) => {
+        const dokumen = header.dokumen.find((d: any) => d.seriDokumen === bd.seriDokumen);
+        return {
+            ...dokumen,
+            seriDokumen: bd.seriDokumen,
+        };
+    }) : [];
+
+    const handleDeleteDokumen = (index: number) => {
+      const updatedBarangDokumen = [...(barang.barangDokumen ?? [])];
+        updatedBarangDokumen.splice(index, 1);
+        setBarang((prev: any) => ({
+            ...prev,
+            barangDokumen: updatedBarangDokumen,
+        }));
+    };
     return (
     <div>
+      <style>
+        {`
+          .no-radius-modal {
+            border-radius: 0 !important;
+            min-width: 800px !important;
+          }
+        `}
+      </style>
+        <Modal show={showDokumenLartas} style={{top:60, borderRadius:0, minWidth:800}} onHide={() => setShowDokumenLartas(false)} contentClassName="no-radius-modal">
+          <Modal.Body style={{ fontSize: 12, gap: 5, display: "flex", flexDirection: "column", borderRadius:0 }}>
+            <ModalDokumenLartas data={barang} setData={setBarang} dataDokumen={header.dokumen} sethideModal={setShowDokumenLartas}/>
+          </Modal.Body>
+        </Modal>
         <Card
           title="Tambah Barang"
           headerStyle={{ backgroundColor: "#f5f5f5"}}
@@ -323,9 +407,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
               label="HS"
               name="posTarif"
               value={barang.posTarif}
-              onChange={(val) => updateBarang("posTarif", val)}
+              onChange={(val) => {
+                updateBarang("posTarif", val);
+                setHsSearch(String(val));
+                const selected = posTarifList.find((item) => item.value === val);
+                setRemarkHS(selected?.remark || "");
+              }}
               error={!barang.posTarif ? "HS wajib diisi" : ""}
-              list={[]} // ganti dengan list kode barang yang valid
+              list={posTarifList}
+              onSearch={(val) => setHsSearch(val)}
               readonly={readOnlyView}
             />
             <div style={{ display: "flex", flexDirection: "column", fontWeight: 500, fontSize: 12, gap: 4, marginBottom: 8}}>
@@ -550,7 +640,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   headerCustom={(
                         readOnlyView ? null : (
                               <Button size="sm" variant="primary" style={{ display: "flex", alignItems:"center", justifyContent:"center", gap: 4 , borderRadius: 0, fontSize: 12 }} onClick={() => setShowForm(true)}>
-                                  <FaPlusCircle/><span style={{paddingTop:1}}>Tambah</span>                
+                                  <FaPlusCircle/><span style={{paddingTop:1}} onClick={() => setShowDokumenLartas(true)}>Tambah</span>                
                               </Button>
                           )
                             )}
@@ -562,39 +652,33 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   actionContainerStyle={{ gap: 15 }}
                   tableStyle={{ fontSize: 12, marginBottom: 0 }}
                   columns={[
-                      { header: "Seri", accessor: "seriDokumen",thStyle:{ textAlign: "center" }, tdStyle: { minWidth: 50, textAlign: "center" } },
-                      { header: "Jenis", accessor: "nomorDokumen", tdStyle: { minWidth: 100}, },
-                      { header: "Nomor", accessor: "fasilitasDokumen" ,tdStyle: { minWidth: 100} },
-                      { header: "Izin", accessor: "izinDokumen", tdStyle: { minWidth: 100} },
-                      { header: "Kantor", accessor: "kantorDokumen", tdStyle: { minWidth: 100} },
-                      { header: "File", accessor: "fileDokumen", tdStyle: { minWidth: 100} },
+                       { header: "Seri", accessor: "seriDokumen",thStyle:{ textAlign: "center" }, tdStyle: { minWidth: 50, textAlign: "center" } },
+                      { header: "Jenis", accessor: "kodeDokumen", tdStyle: { minWidth: 100}, render: (row) => getNamaDokumen(row.kodeDokumen) },
+                      { header: "Nomor", accessor: "nomorDokumen", tdStyle: { minWidth: 100}, },
+                      { header: "Tanggal", accessor: "tanggalDokumen", tdStyle: { minWidth: 100}, render: (row) => row.tanggalDokumen ? moment(row.tanggalDokumen).format("DD MMM YYYY") : "" },
                       {
                           header: "Action",
                           accessor: "id",
                           tdStyle: { minWidth: 100 },
-                          // render: (row, index) => (
-                          //     <div style={{ display: "flex", gap: 6 }}>
-                          //     <Button
-                          //         size="sm"
-                          //         variant="outline-warning"
-                          //         onClick={() => handleEditDokumen(row, index)}
-                          //     >
-                          //         Edit
-                          //     </Button>
-
-                          //     <Button
-                          //         size="sm"
-                          //         variant="outline-danger"
-                          //         onClick={() => handleDeleteDokumen(index)}
-                          //         // onClick={() => handleDelete(index)}
-                          //     >
-                          //         Hapus
-                          //     </Button>
-                          //     </div>
-                          // ),
+                          render: (row, index) => (
+                              <div style={{ display: "flex", gap: 6 }}>
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip id={`tooltip-delete-${index}`}>Hapus dokumen</Tooltip>}
+                              >
+                                <Button
+                                  size="sm"
+                                  variant="outline-danger"
+                                  onClick={() => handleDeleteDokumen(index)}
+                                >
+                                  <FaTrash/>
+                                </Button>
+                              </OverlayTrigger>
+                              </div>
+                          ),
                       },
                   ]}
-                  data={data}   
+                  data={dataDokumen?? []}   
                   striped={false}
                   bordered={false}
                   hover={true}
@@ -615,7 +699,6 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   style={{backgroundColor:"transparent", border:"none", boxShadow:"none"}} 
               >
                 <Card 
-                
                   title="BM"
                   style={{height:"100%"}}
                 >
@@ -766,7 +849,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                       <Card.Select
                           label="Jenis Tarif"
                           name="kodeJenisTarif"
-                          value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.kodeJenisTarif}
+                          value={getTarif("BMAD")?.kodeJenisTarif}
                           onChange={(val) => {updateBarangTarifOpsional("BMAD","kodeJenisTarif", val)}}
                           list={ListJenisTarif}
                           readonly={readOnlyView}
@@ -777,14 +860,14 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                     <Card.Numeric
                       label="Jumlah Satuan"
                       name="JumlahSatuan"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.jumlahSatuan}
+                      value={getTarif("BMAD")?.jumlahSatuan}
                       onChange={(val) => updateBarangTarifOpsional("BMAD","jumlahSatuan", val)} 
                       readonly={readOnlyView}
                     />
                     <Card.Select
                       label="Satuan Barang"
                       name="SatuanBarang"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.kodeSatuanBarang}
+                      value={getTarif("BMAD")?.kodeSatuanBarang}
                       onChange={(val) => updateBarangTarifOpsional("BMAD","kodeSatuanBarang", val)}
                       list={ListSatuanBarang.map((item) => ({ label: `${item.tableKey} - ${item.tableValue}`, value: item.tableKey }))} // ganti dengan list kode satuan yang valid
                       readonly={readOnlyView}
@@ -795,15 +878,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.tarif}
+                      value={getTarif("BMAD")?.tarif}
                       onChange={(val) => updateBarangTarifOpsional("BMAD","tarif", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMAD")?.kodeJenisTarif || "1"]}
                   />
                    <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.kodeFasilitasTarif}
+                      value={getTarif("BMAD")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("BMAD","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
@@ -813,10 +896,10 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.tarifFasilitas}
+                      value={getTarif("BMAD")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("BMAD","tarifFasilitas", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMAD")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMAD")?.kodeJenisTarif || "1"]}
                   />
                   </div>
                   </div>
@@ -835,7 +918,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                       <Card.Select
                           label="Jenis Tarif"
                           name="kodeJenisTarif"
-                          value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.kodeJenisTarif}
+                          value={getTarif("BMTP")?.kodeJenisTarif}
                           onChange={(val) => {updateBarangTarifOpsional("BMTP","kodeJenisTarif", val)}}
                           list={ListJenisTarif}
                           readonly={readOnlyView}
@@ -846,14 +929,14 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                     <Card.Numeric
                       label="Jumlah Satuan"
                       name="JumlahSatuan"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.jumlahSatuan}
+                      value={getTarif("BMTP")?.jumlahSatuan}
                       onChange={(val) => updateBarangTarifOpsional("BMTP","jumlahSatuan", val)} 
                       readonly={readOnlyView}
                     />
                     <Card.Select
                       label="Satuan Barang"
                       name="SatuanBarang"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.kodeSatuanBarang}
+                      value={getTarif("BMTP")?.kodeSatuanBarang}
                       onChange={(val) => updateBarangTarifOpsional("BMTP","kodeSatuanBarang", val)}
                       list={ListSatuanBarang.map((item) => ({ label: `${item.tableKey} - ${item.tableValue}`, value: item.tableKey }))} // ganti dengan list kode satuan yang valid
                       readonly={readOnlyView}
@@ -864,15 +947,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.tarif}
+                      value={getTarif("BMTP")?.tarif}
                       onChange={(val) => updateBarangTarifOpsional("BMTP","tarif", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMTP")?.kodeJenisTarif || "1"]}
                   />
                   <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.kodeFasilitasTarif}
+                      value={getTarif("BMTP")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("BMTP","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
@@ -882,10 +965,10 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.tarifFasilitas}
+                      value={getTarif("BMTP")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("BMTP","tarifFasilitas", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMTP")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMTP")?.kodeJenisTarif || "1"]}
                   />
                   </div>
                   </div>
@@ -904,7 +987,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                       <Card.Select
                           label="Jenis Tarif"
                           name="kodeJenisTarif"
-                          value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.kodeJenisTarif}
+                          value={getTarif("BMI")?.kodeJenisTarif}
                           onChange={(val) => {updateBarangTarifOpsional("BMI","kodeJenisTarif", val)}}
                           list={ListJenisTarif}
                           readonly={readOnlyView}
@@ -915,14 +998,14 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                     <Card.Numeric
                       label="Jumlah Satuan"
                       name="JumlahSatuan"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.jumlahSatuan}
+                      value={getTarif("BMI")?.jumlahSatuan}
                       onChange={(val) => updateBarangTarifOpsional("BMI","jumlahSatuan", val)} 
                       readonly={readOnlyView}
                     />
                     <Card.Select
                       label="Satuan Barang"
                       name="SatuanBarang"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.kodeSatuanBarang}
+                      value={getTarif("BMI")?.kodeSatuanBarang}
                       onChange={(val) => updateBarangTarifOpsional("BMI","kodeSatuanBarang", val)}
                       list={ListSatuanBarang.map((item) => ({ label: `${item.tableKey} - ${item.tableValue}`, value: item.tableKey }))} // ganti dengan list kode satuan yang valid
                       readonly={readOnlyView}
@@ -933,15 +1016,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.tarif}
+                      value={getTarif("BMI")?.tarif}
                       onChange={(val) => updateBarangTarifOpsional("BMI","tarif", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMI")?.kodeJenisTarif || "1"]}
                   />
                    <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.kodeFasilitasTarif}
+                      value={getTarif("BMI")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("BMI","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
@@ -951,10 +1034,10 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.tarifFasilitas}
+                      value={getTarif("BMI")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("BMI","tarifFasilitas", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMI")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMI")?.kodeJenisTarif || "1"]}
                   />
                   </div>
                   </div>
@@ -973,7 +1056,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                       <Card.Select
                           label="Jenis Tarif"
                           name="kodeJenisTarif"
-                          value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.kodeJenisTarif}
+                          value={getTarif("BMP")?.kodeJenisTarif}
                           onChange={(val) => {updateBarangTarifOpsional("BMP","kodeJenisTarif", val)}}
                           list={ListJenisTarif}
                           readonly={readOnlyView}
@@ -984,14 +1067,14 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                     <Card.Numeric
                       label="Jumlah Satuan"
                       name="JumlahSatuan"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.jumlahSatuan}
+                      value={getTarif("BMP")?.jumlahSatuan}
                       onChange={(val) => updateBarangTarifOpsional("BMP","jumlahSatuan", val)} 
                       readonly={readOnlyView}
                     />
                     <Card.Select
                       label="Satuan Barang"
                       name="SatuanBarang"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.kodeSatuanBarang}
+                      value={getTarif("BMP")?.kodeSatuanBarang}
                       onChange={(val) => updateBarangTarifOpsional("BMP","kodeSatuanBarang", val)}
                       list={ListSatuanBarang.map((item) => ({ label: `${item.tableKey} - ${item.tableValue}`, value: item.tableKey }))} // ganti dengan list kode satuan yang valid
                       readonly={readOnlyView}
@@ -1002,15 +1085,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.tarif}
+                      value={getTarif("BMP")?.tarif}
                       onChange={(val) => updateBarangTarifOpsional("BMP","tarif", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMP")?.kodeJenisTarif || "1"]}
                   />
                   <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.kodeFasilitasTarif}
+                      value={getTarif("BMP")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("BMP","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
@@ -1020,10 +1103,10 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.tarifFasilitas}
+                      value={getTarif("BMP")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("BMP","tarifFasilitas", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "BMP")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("BMP")?.kodeJenisTarif || "1"]}
                   />
                   </div>
                   </div>
@@ -1031,7 +1114,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   
                 )}
                 </Card>
-                <Card
+                {/* <Card
                   title="Cukai"
                   style={!checkedCukai ? { height: "100%" } : {}}
                   bodyStyle={!checkedCukai ? { padding: 0 } : {}}
@@ -1064,7 +1147,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                       <Card.Select
                           label="Jenis Tarif"
                           name="kodeJenisTarif"
-                          value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.kodeJenisTarif}
+                          value={getTarif("Cukai")?.kodeJenisTarif}
                           onChange={(val) => {updateBarangTarifOpsional("Cukai","kodeJenisTarif", val)}}
                           list={ListJenisTarif}
                           readonly={readOnlyView}
@@ -1075,14 +1158,14 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                     <Card.Numeric
                       label="Jumlah Satuan"
                       name="JumlahSatuan"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.jumlahSatuan}
+                      value={getTarif("Cukai")?.jumlahSatuan}
                       onChange={(val) => updateBarangTarifOpsional("Cukai","jumlahSatuan", val)} 
                       readonly={readOnlyView}
                     />
                     <Card.Select
                       label="Satuan Barang"
                       name="SatuanBarang"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.kodeSatuanBarang}
+                      value={getTarif("Cukai")?.kodeSatuanBarang}
                       onChange={(val) => updateBarangTarifOpsional("Cukai","kodeSatuanBarang", val)}
                       list={ListSatuanBarang.map((item) => ({ label: `${item.tableKey} - ${item.tableValue}`, value: item.tableKey }))} // ganti dengan list kode satuan yang valid
                       readonly={readOnlyView}
@@ -1093,15 +1176,15 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.tarif}
+                      value={getTarif("Cukai")?.tarif}
                       onChange={(val) => updateBarangTarifOpsional("Cukai","tarif", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("Cukai")?.kodeJenisTarif || "1"]}
                   />
                   <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.kodeFasilitasTarif}
+                      value={getTarif("Cukai")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("Cukai","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
@@ -1111,17 +1194,17 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.tarifFasilitas}
+                      value={getTarif("Cukai")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("Cukai","tarifFasilitas", val)}
                       readonly={readOnlyView}
-                      labelUnit={{"1": "%", "2": "", null:""}[barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "Cukai")[0]?.kodeJenisTarif || "1"]}
+                      labelUnit={{"1": "%", "2": "", null:""}[getTarif("Cukai")?.kodeJenisTarif || "1"]}
                   />
                   </div>
                   </div>
                   </div>
                   
                 )}
-                </Card>
+                </Card> */}
               </Card>
               <Card
                   title="PDRI"
@@ -1135,7 +1218,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPN")[0]?.tarif}
+                      value={getTarif("PPN")?.tarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPN","tarif", val)}}
                       readonly={readOnlyView}
                       labelUnit="%"
@@ -1143,18 +1226,18 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                    <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPN")[0]?.kodeFasilitasTarif}
+                      value={getTarif("PPN")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPN","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
-                      //error={!barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPN")[0]?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
+                      //error={!getTarif("PPN")?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
                       list={ListFalsitasTarif} // ganti dengan list kode kategori yang valid
                       readonly={readOnlyView}
                   />
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPN")[0]?.tarifFasilitas}
+                      value={getTarif("PPN")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("PPN", "tarifFasilitas", val)}
                       readonly={readOnlyView}
                       labelUnit="%"
@@ -1169,7 +1252,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPNBM")[0]?.tarif}
+                      value={getTarif("PPNBM")?.tarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPNBM","tarif", val)}}
                       readonly={readOnlyView}
                       labelUnit="%"
@@ -1177,18 +1260,18 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                    <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPNBM")[0]?.kodeFasilitasTarif}
+                      value={getTarif("PPNBM")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPNBM","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
-                      //error={!barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPNBM")[0]?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
+                      //error={!getTarif("PPNBM")?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
                       list={ListFalsitasTarif} // ganti dengan list kode kategori yang valid
                       readonly={readOnlyView}
                   />
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPNBM")[0]?.tarifFasilitas}
+                      value={getTarif("PPNBM")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("PPNBM", "tarifFasilitas", val)}
                       readonly={readOnlyView}
                       labelUnit="%"
@@ -1203,7 +1286,7 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                   <Card.Numeric
                       label="Tarif"
                       name="tarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPH")[0]?.tarif}
+                      value={getTarif("PPH")?.tarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPH","tarif", val)}}
                       readonly={readOnlyView}
                       labelUnit="%"
@@ -1211,18 +1294,18 @@ export const ModalBarang = ({data, setData, header, setActiveForm, editingIndex 
                    <Card.Select
                       label="Fasilitas Tarif"
                       name="kodeFasilitasTarif"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPH")[0]?.kodeFasilitasTarif}
+                      value={getTarif("PPH")?.kodeFasilitasTarif}
                       onChange={(val) => {updateBarangTarifOpsional("PPH","kodeFasilitasTarif", val),
                         updateBarang("kodeDokumen", ListKategoriBarang.find(item => item.kodeKategoriBarang === val)?.kodeDokumen)
                       }}
-                      //error={!barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPH")[0]?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
+                      //error={!getTarif("PPH")?.kodeFasilitasTarif ? "Kategori Barang wajib diisi" : ""}
                       list={ListFalsitasTarif} // ganti dengan list kode kategori yang valid
                       readonly={readOnlyView}
                   />
                   <Card.Numeric
                       label="Tarif Fasilitas"
                       name="tarifFasilitas"
-                      value={barang.barangTarif.filter((item: any) => item.kodeJenisPungutan === "PPH")[0]?.tarifFasilitas}
+                      value={getTarif("PPH")?.tarifFasilitas}
                       onChange={(val) => updateBarangTarifOpsional("PPH", "tarifFasilitas", val)}
                       readonly={readOnlyView}
                       labelUnit="%"

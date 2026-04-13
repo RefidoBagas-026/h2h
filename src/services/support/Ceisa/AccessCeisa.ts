@@ -38,6 +38,22 @@ export const ceisaService = {
     getBCPEB: (id: number) =>
         ceisaApi.get<ApiResponse<any>>(`/GetBC-PEB/${id}`),
 
-    getBCTEB: (id: number) =>
-        ceisaApi.get<ApiResponse<any>>(`/GetBC-TEB/${id}`),
+    getBCTPB: (id: number) =>
+        ceisaApi.get<ApiResponse<any>>(`/GetBC-TPB/${id}`),
+
+    postingCeisa: (data: any) =>
+        ceisaApi.post<ApiResponse<any>>(`/PostingCeisa`, data),
+
+    printExcelTPB: (nomorAju: string) =>
+        ceisaApi.getEXCEL(`/tpb/download?noAju=${nomorAju}`).then((response : any) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${nomorAju}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+        }),
+
+    syncNoDaftar: (id: number) =>
+        ceisaApi.post<ApiResponse<any>>(`/SyncNoDaftar?id=${id}`)
 };

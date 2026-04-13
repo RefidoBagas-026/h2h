@@ -54,7 +54,20 @@ const handleDelete = (index: number) => {
         };
     });
 };
-
+useEffect(() => {
+      if (typeof setData === "function") {
+                setData((prev: any) => ({
+                    ...prev,
+                    barang: //semua ndpbm barang disamakan dengan header
+                        Array.isArray(prev.barang)
+                            ? prev.barang.map((item: any) => ({
+                                    ...item,
+                                    ndpbm: headers.ndpbm,
+                                }))
+                            : [],
+                }));
+            }
+    }, [headers.ndpbm]);
 useEffect(() => {
     if (Array.isArray(data) && data.length > 0) {
         setIsComplete(true);
@@ -66,7 +79,70 @@ useEffect(() => {
   // Fungsi untuk membandingkan total cif barang dan header
   const getTotalCifBarang = () => Array.isArray(data) ? data.reduce((sum, item) => sum + (Number(item.cif) || 0), 0) : 0;
   const isCifEqual = getTotalCifBarang() === (Number(headers.cif) || 0);
+  
+  useEffect(() => {
+    //update semua cifRupiah barang setiap kali header cif berubah
+    if (typeof setData === "function") {
+        setData((prev: any) => ({
+            ...prev,
+            barang:
+                Array.isArray(prev.barang)
+                    ? prev.barang.map((item: any) => ({
+                            ...item,
+                            cifRupiah: (item.cif || 0) * (headers.ndpbm || 0),
+                        }))
+                    : [],
+        }));
+    }
+  }, [headers.ndpbm, setData]);
 
+    //Jika ada barangTarif maka ubah urutan nya Index 1 adalah barangTarif dengan kodeJenisPungutan PPH Index 2 adalah PPN, index 0 adalah BM atau BMKITE
+    // Reorder barangTarif for all barang items
+    useEffect(() => {
+        if (!data || typeof setData !== "function") return;
+
+        const barangArr = Array.isArray(data.barang) ? data.barang : Array.isArray(data) ? data : [];
+        if (!Array.isArray(barangArr) || barangArr.length === 0) return;
+
+        let changed = false;
+        const updatedBarang = barangArr.map((barangItem) => {
+            // Remove organizedTarif property if exists
+            const { organizedTarif, ...rest } = barangItem;
+            if (!Array.isArray(rest.barangTarif)) return rest;
+            const bmOrBmKite = rest.barangTarif.filter(
+                (tarif: any) => tarif.kodeJenisPungutan === "BM" || tarif.kodeJenisPungutan === "BMKITE"
+            );
+            const pph = rest.barangTarif.filter(
+                (tarif: any) => tarif.kodeJenisPungutan === "PPH"
+            );
+            const ppn = rest.barangTarif.filter(
+                (tarif: any) => tarif.kodeJenisPungutan === "PPN"
+            );
+            const others = rest.barangTarif.filter(
+                (tarif: any) => !["BM", "BMKITE", "PPH", "PPN"].includes(tarif.kodeJenisPungutan)
+            );
+            const reordered = [
+                ...bmOrBmKite,
+                ...pph,
+                ...ppn,
+                ...others,
+            ];
+            const isSameOrder = rest.barangTarif.length === reordered.length && rest.barangTarif.every((t: any, idx: number) => t.kodeJenisPungutan === reordered[idx]?.kodeJenisPungutan);
+            if (!isSameOrder) changed = true;
+            return {
+                ...rest,
+                barangTarif: reordered,
+            };
+        });
+
+        if (changed) {
+            setData((prev: any) => ({
+                ...prev,
+                barang: updatedBarang,
+            }));
+        }
+    }, [data, setData, headers]);
+  
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "center" }}>
         {!showForm && <div style={{ display: "flex", flexDirection: "row", fontWeight: 500, fontSize: 12, padding: 12, backgroundColor: "#fff7db", alignItems: "center", gap: 6}}>

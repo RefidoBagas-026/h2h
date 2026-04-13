@@ -8,7 +8,8 @@ export const createApi = (baseURL: string) => {
   async function request<T>(
     endpoint: string,
     method: HttpMethod,
-    data?: unknown
+    data?: unknown,
+    responseType: XMLHttpRequestResponseType = "json"
   ): Promise<T> {
     const token = getToken();
 
@@ -16,12 +17,33 @@ export const createApi = (baseURL: string) => {
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : ""
+        Authorization: token ? `Bearer ${token}` : "",
+        "x-timezone-offset": `7`
       },
       body: data ? JSON.stringify(data) : undefined
     });
     if (!response.ok) {
-      throw new Error(`API Error ${response.status}`);
+      let errorMessage = `API Error ${response.status}: ${response.statusText}`;
+
+      try {
+        const errorBody = await response.json();
+
+        // kalau format error berupa object
+        if (errorBody.message) {
+          errorMessage = Array.isArray(errorBody.message)
+            ? errorBody.message.join(", ")
+            : errorBody.message;
+        }
+      } catch (e) {
+        // kalau response bukan JSON (misal HTML)
+        console.error("Failed to parse error response", e);
+      }
+
+      throw new Error(errorMessage);
+    }
+    
+    if (responseType === "blob") {
+      return response.blob() as Promise<T>;
     }
 
     return response.json() as Promise<T>;
@@ -38,6 +60,9 @@ export const createApi = (baseURL: string) => {
       request<T>(endpoint, "PUT", data),
 
     delete: <T>(endpoint: string) =>
-      request<T>(endpoint, "DELETE")
+      request<T>(endpoint, "DELETE"),
+
+    getEXCEL: <T>(endpoint: string) =>
+      request<T>(endpoint, "GET", undefined, "blob"),
   };
 };

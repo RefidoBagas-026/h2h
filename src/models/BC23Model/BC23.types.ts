@@ -193,20 +193,3 @@ export interface Pungutan {
   kodeJenisPungutan: string | null;
   nilaiPungutan: number | null;
 }
-// {
-//   "apiVersion": "1.0",
-//   "data": {
-    
-//     "idManifesDetail": null,
-//     "kodeGudang": null,
-//     "namaPemilik": null,
-//     "namaPenerima": null,
-//     "nilaiSimi": null,
-//     "npwpPemilik": null,
-//     "npwpPemilk": null,
-//     "npwpPenerima": null,
-//     "respon": "Data B/L CEISA4.0 atau AWB Tidak Ditemukan atau Dokumen Sudah Ditutup",
-//   },
-//   "message": "Ok",
-//   "statusCode": 200
-// }

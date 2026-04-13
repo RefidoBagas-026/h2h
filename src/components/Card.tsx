@@ -6,13 +6,14 @@ import React, { useState, useRef, useEffect } from "react";
 ============================= */
 
 interface CardProps {
-  title: string;
+  title: string | React.ReactNode;
   children: React.ReactNode;
   style?: React.CSSProperties;
   className?: string;
   headerStyle?: React.CSSProperties;
   headerCustom?: React.ReactNode;
   bodyStyle?: React.CSSProperties;
+  titleStyle?: React.CSSProperties;
 }
 
 interface BaseFieldProps {
@@ -41,6 +42,7 @@ interface SelectProps extends BaseFieldProps {
   list: { label: string; value: string | number }[];
   sliceList?: number;
   onChange?: (value: string | number) => void;
+  onSearch?: (query: string) => void;
 }
 
 interface TextareaProps extends BaseFieldProps {
@@ -70,7 +72,7 @@ interface CardComponent extends React.FC<CardProps> {
    MAIN CARD
 ============================= */
 
-const Card: CardComponent = ({ title, headerCustom, children, style, className, headerStyle, bodyStyle }) => {
+const Card: CardComponent = ({ title, headerCustom, children, style, className, headerStyle, bodyStyle, titleStyle }) => {
   return (
     <div style={{ ...styles.card, ...style }} className={className}>
       {title && (
@@ -83,7 +85,7 @@ const Card: CardComponent = ({ title, headerCustom, children, style, className, 
             alignItems: "center",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 15, fontFamily: "inherit" }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: 15, fontFamily: "inherit", ...titleStyle }}>{title}</h3>
           {headerCustom && <div>{headerCustom}</div>}
         </div>
       )}
@@ -173,6 +175,7 @@ const CardSelect: React.FC<SelectProps> = ({
   sliceList = 10, // default slice list to 10 items
   readonly = false,
   onChange,
+  onSearch,
   containerStyle,
   labelStyle,
   inputStyle,
@@ -219,6 +222,7 @@ const CardSelect: React.FC<SelectProps> = ({
           onChange={(e) => {
             setSearch(e.target.value);
             setOpen(true);
+            onSearch?.(e.target.value);
           }}
           onClick={() => !readonly && setOpen(!open)}
           className={className}

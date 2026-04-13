@@ -35,7 +35,7 @@ export const defaultBC23Request: BC23Request = {
   seri: 0,
   subposBc11: "",
   tanggalBc11:moment(new Date()).format("YYYY-MM-DD"),
-  tanggalTiba: null,
+  tanggalTiba: moment(new Date()).format("YYYY-MM-DD"),
   tanggalTtd: moment(new Date()).format("YYYY-MM-DD"),
   biayaTambahan: 0,
   biayaPengurang: 0,

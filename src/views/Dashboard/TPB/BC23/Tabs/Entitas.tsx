@@ -54,6 +54,7 @@ const EntitasBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: an
   
   const pengusaha = getEntitas("3");
 
+  const entitasList = [pengusaha, pemasok, pemilik];
   useEffect(() => {
     const hasEntitas = !!(
       (pemilik.alamatEntitas && pemilik.kodeEntitas && pemilik.kodeJenisIdentitas && pemilik.kodeStatus && pemilik.namaEntitas && pemilik.nomorIdentitas && pemilik.seriEntitas) &&
@@ -61,7 +62,12 @@ const EntitasBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: an
       (pengusaha.alamatEntitas && pengusaha.kodeEntitas && pengusaha.kodeJenisIdentitas && pengusaha.namaEntitas && pengusaha.nibEntitas && pengusaha.nomorIdentitas && pengusaha.nomorIjinEntitas && pengusaha.tanggalIjinEntitas && pengusaha.seriEntitas)
     );
     setIsComplete(hasEntitas);
+    setData((prev: any) => ({
+      ...prev,
+      entitas: entitasList,
+    }));
   }, [pemilik, pemasok, pengusaha]);
+
   return (
     <div style={{ display: "flex", flexDirection: "row", gap: 8, justifyContent: "center" }}>
       <Card

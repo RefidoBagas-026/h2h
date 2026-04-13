@@ -9,11 +9,13 @@ export type ActionItem = {
   onClick: () => void;
   icon?: React.ReactNode;
   disabled?: boolean;
+  visible?: boolean; // static condition
+  condition?: () => boolean; // dynamic condition
 };
 
 type ActionDropdownProps = {
   actions: ActionItem[];
-  label?: React.ReactNode; // optional custom toggle content
+  label?: React.ReactNode; // custom toggle
 };
 
 // ==============================
@@ -38,7 +40,7 @@ const CustomToggle = React.forwardRef<
       display: "inline-flex",
       alignItems: "center",
       fontSize: 12,
-      borderRadius: 0
+      borderRadius: 0,
     }}
   >
     {children}
@@ -52,21 +54,40 @@ CustomToggle.displayName = "CustomToggle";
 // ==============================
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
   actions,
-  label = "Action", // default toggle text
+  label = "Action",
 }) => {
+  const filteredActions = actions.filter((action) => {
+    if (action.visible === false) return false;
+    if (action.condition && !action.condition()) return false;
+    return true;
+  });
+
+  if (filteredActions.length === 0) return null;
+
   return (
     <Dropdown>
-      <Dropdown.Toggle as={CustomToggle}>
-        {label}
-      </Dropdown.Toggle>
+      <Dropdown.Toggle as={CustomToggle}>{label}</Dropdown.Toggle>
 
-      <Dropdown.Menu align="end" style={{ borderRadius: 0, minWidth: 120, padding: "4px 0" }}>
-        {actions.map((action, index) => (
+      <Dropdown.Menu
+        align="end"
+        style={{
+          borderRadius: 0,
+          minWidth: 120,
+          padding: "4px 0",
+        }}
+      >
+        {filteredActions.map((action, index) => (
           <Dropdown.Item
             key={index}
             onClick={action.onClick}
             disabled={action.disabled}
-            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, padding: "4px 12px" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12,
+              padding: "4px 12px",
+            }}
           >
             {action.icon}
             {action.label}

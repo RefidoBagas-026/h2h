@@ -26,17 +26,16 @@ const DokumenBC23Page = ({ data, setData, headers, setIsComplete, readOnlyView }
         noHostBl: "",
         tglHostBl: "",
     }));
-    console.log("Data Dokumen:", headState);
-    console.log("Data Dokumen 2:", dataDokumen);
+
     const [showModal, setShowModal] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [form, setForm] = useState({ ...initForm });
     
 const [isLoading, setIsLoading] = useState(false);
     const generateSeri = () => {
-        if (data.length === 0) return "1";
+        if (data.length === 0) return 1;
         const maxSeri = Math.max(...data.map((item: any) => parseInt(item.seriDokumen)));
-        return (maxSeri + 1).toString();
+        return (maxSeri + 1);
     };
     const [showForm, setShowForm] = useState(false);
     const handleInputChange = (field: string, value: any) => {
@@ -78,7 +77,6 @@ const [isLoading, setIsLoading] = useState(false);
                 head.tglHostBl,
                 head.namaImportir
             );
-            console.log("Response Manifest:", res);
            if (res.data.respon !== "OK") {
                 console.warn(res.data.respon);
             }
@@ -156,6 +154,31 @@ useEffect(() => {
     const isComplete = data?.length > 0;
     setIsComplete(isComplete);
 }, [data, setIsComplete]);
+
+
+//buat map urutan kodeDokumen 380 selalu menjadi index pertama, index kedua 705 atau 740, sisanya mengikuti urutan masuk
+useEffect(() => {
+    if (!data || data.length === 0) return;
+    // Sort: 380 always first, then 705/740, then the rest
+    const sorted = [...data].sort((a: any, b: any) => {
+        if (a.kodeDokumen === "380" && b.kodeDokumen !== "380") return -1;
+        if (b.kodeDokumen === "380" && a.kodeDokumen !== "380") return 1;
+        if ((a.kodeDokumen === "705" || a.kodeDokumen === "740") && !(b.kodeDokumen === "705" || b.kodeDokumen === "740")) return -1;
+        if ((b.kodeDokumen === "705" || b.kodeDokumen === "740") && !(a.kodeDokumen === "705" || a.kodeDokumen === "740")) return 1;
+        return 0;
+    });
+
+    // Only update if order is different (compare seriDokumen and kodeDokumen)
+    const isSameOrder = data.length === sorted.length && data.every((item: any, idx: number) =>
+        item.seriDokumen === sorted[idx].seriDokumen && item.kodeDokumen === sorted[idx].kodeDokumen
+    );
+    if (!isSameOrder) {
+        setData((prev: any) => ({
+            ...prev,
+            dokumen: sorted,
+        }));
+    }
+}, [data, setData, headers]);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "center" }}>
         <LoadingOverlay

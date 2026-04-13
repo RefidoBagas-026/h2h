@@ -21,6 +21,7 @@ import Pungutan from "../Tabs/Pungutan";
 import { useNavigate } from "react-router-dom";
 const BASE_ROUTE = "/dashboard/tpb/bc23";
 import { useLocation } from "react-router-dom";
+import { bc23Service } from "../../../../../services/support/TPB/BC23/AccessBC23";
 
 const BC23EditView = () => {
   const navigate = useNavigate();
@@ -35,10 +36,14 @@ const BC23EditView = () => {
   const [isCompleteBarang, setIsCompleteBarang] = useState(false);
   const [isCompletePungutan, setIsCompletePungutan] = useState(false);
   const [isCompletePernyataan, setIsCompletePernyataan] = useState(false);
+  const [setId, setSetId] = useState<number>(0);
   const [data, setData] = useState<BC23Request>(() => {
     // Cek jika ada data dari navigasi (edit)
     if (location.state && location.state.data) {
       const dataEdit = location.state.data;
+      if (dataEdit.Id) {
+        setSetId(dataEdit.Id);
+      }
       // Pastikan pengangkut selalu array
       return { ...dataEdit, pengangkut: Array.isArray(dataEdit.pengangkut) ? dataEdit.pengangkut : [dataEdit.pengangkut || {}] };
     }
@@ -83,8 +88,29 @@ const BC23EditView = () => {
         const allComplete = isCompleteHeader && isCompleteEntitas && isCompletePengangkut && isCompleteKemasan && isCompleteTransaksi  && isCompletePernyataan;
         setIsCompleteAll(allComplete);
     }, [isCompleteHeader, isCompleteEntitas, isCompletePengangkut, isCompleteKemasan, isCompleteTransaksi, isCompletePernyataan]);
-    
-  return (
+  
+  const handleUpdate = () => {
+    // Validasi sebelum simpan
+    if (!isCompleteAll) {
+        alert("Data belum lengkap. Pastikan semua tab berwarna hijau sebelum menyimpan.");
+        return;
+    }
+    // Lakukan update data ke server
+    // Misalnya:
+    setIsLoading(true);
+    bc23Service.updateTPB(setId, data)
+      .then(() => {
+        alert("Data berhasil diupdate!");
+        navigate(`${BASE_ROUTE}`);
+      })
+      .catch(() => {
+        alert("Gagal mengupdate data.");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+    return (
     <div style={{ position: "relative", minHeight: "calc(100vh - 96px)" }}>
       <LoadingOverlay
         show={isLoading}
@@ -96,7 +122,7 @@ const BC23EditView = () => {
         headerStyle={{ backgroundColor: "#f5f5f5", padding: "18px 12px" }}
         headerCustom={(
             <div style={{ display: "flex", flexDirection: "row", gap: 8, }}>
-                <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant={isCompleteAll ? "primary" : "secondary"} disabled={!isCompleteAll}>Simpan</Button>
+                <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant={isCompleteAll ? "primary" : "secondary"} disabled={!isCompleteAll} onClick={()=> handleUpdate()}>Update</Button>
                 <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant="secondary" onClick={() => navigate(`${BASE_ROUTE}`)}>Batal</Button>
             </div>
         )}

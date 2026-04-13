@@ -39,6 +39,10 @@ export const bc23Service = {
   deleteTPB: (id: number) =>
     tpbApi.delete<void>(`/23/${id}`),
 
-  postingTPB: (id: number, data: unknown) =>
-    tpbApi.put(`/23/support-TPB/${id}`, data)
+  postingBCTemps: (id: number, data: unknown) =>
+    tpbApi.put(`/23/support-TPB/${id}`, data),
+
+  updateNoDaftar: (id: number, data: unknown) =>
+    tpbApi.put(`/23/AddNoDaftar/${id}`, data),
+  
 };

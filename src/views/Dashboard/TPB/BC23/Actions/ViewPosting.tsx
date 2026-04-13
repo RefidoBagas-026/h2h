@@ -21,8 +21,9 @@ import Pungutan from "../Tabs/Pungutan";
 import { useNavigate } from "react-router-dom";
 const BASE_ROUTE = "/dashboard/tpb/bc23";
 import { useLocation } from "react-router-dom";
+import { ceisaService } from "../../../../../services/support/Ceisa/AccessCeisa";
 
-const BC23View = () => {
+const BC23ViewPosting = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCompleteAll, setIsCompleteAll] = useState(false);
@@ -83,7 +84,66 @@ const BC23View = () => {
         const allComplete = isCompleteHeader && isCompleteEntitas && isCompletePengangkut && isCompleteKemasan && isCompleteTransaksi  && isCompletePernyataan;
         setIsCompleteAll(allComplete);
     }, [isCompleteHeader, isCompleteEntitas, isCompletePengangkut, isCompleteKemasan, isCompleteTransaksi, isCompletePernyataan]);
-    
+    //ubah bentuk tanggal 2024-11-05T00:00:00 menjadi 2024-11-05 untuk semua field tanggal di data sebelum posting
+    useEffect(() => {
+        if (!data) return;
+
+        const formatDate = (dateString: string | null ) => {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        };
+
+        const formatted = {
+            ...data,
+            tanggalBc11: formatDate(data.tanggalBc11),
+            tanggalTiba: formatDate(data.tanggalTiba),
+            tanggalTtd: formatDate(data.tanggalTtd),
+            dokumen: data.dokumen.map((d: any) => ({
+            ...d,
+            tanggalDokumen: formatDate(d.tanggalDokumen),
+            })),
+            entitas: data.entitas.map((e: any) => ({
+            ...e,
+            tanggalIjinEntitas: formatDate(e.tanggalIjinEntitas),
+            })),
+        };
+
+        const isSame = JSON.stringify(data) === JSON.stringify(formatted);
+
+        if (!isSame) {
+            setData(formatted);
+        }
+        }, [data]);
+
+    const handlePosting = async (data: any) => {
+        
+        if (!confirm("Apakah Anda yakin ingin memposting data ini?")) {
+            return;
+        }
+
+        if (!isCompleteAll) {
+            alert("Data belum lengkap. Pastikan semua tab berwarna hijau sebelum melakukan posting.");
+            return;
+        }
+        try {
+            await ceisaService.postingCeisa(data).then((response) => {
+                if (response.statusCode === 200) {
+                    alert("Data BC 2.3 berhasil diposting!");
+                    navigate(`${BASE_ROUTE}`);
+                }else {
+                    alert(`Gagal memposting data BC 2.3. Pesan: ${response.message}`);
+                }
+            });
+        } catch (error) {
+            console.error("Error posting data to Ceisa:", error);
+            alert("Terjadi kesalahan saat memposting data BC 2.3.");
+        }
+    }
+
   return (
     <div style={{ position: "relative", minHeight: "calc(100vh - 96px)" }}>
       <LoadingOverlay
@@ -96,7 +156,7 @@ const BC23View = () => {
         headerStyle={{ backgroundColor: "#f5f5f5", padding: "18px 12px" }}
         headerCustom={(
             <div style={{ display: "flex", flexDirection: "row", gap: 8, }}>
-                {/* <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant={"secondary"} disabled={true}>Simpan</Button> */}
+                <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant={isCompleteAll ? "primary" : "secondary"} disabled={!isCompleteAll} onClick={() => handlePosting(data)}>Posting</Button>
                 <Button style={{ borderRadius:0,fontSize: 12, width: "100px"}} variant="secondary" onClick={() => navigate(`${BASE_ROUTE}`)}>Batal</Button>
             </div>
         )}
@@ -140,4 +200,4 @@ const BC23View = () => {
   );
 };
 
-export default BC23View;
+export default BC23ViewPosting;

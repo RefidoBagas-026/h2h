@@ -20,7 +20,7 @@ interface HeaderAction {
 }
 
 interface CustomTableProps<T> {
-  title: string;
+  title: string | React.ReactNode;
   columns: TableColumn<T>[];
   data: T[];
   headerActions?: HeaderAction[];

@@ -12,6 +12,7 @@ const TransaksiBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: 
     const [isFreightValid, setIsFreightValid] = useState(true);
     const [isAsuransiValid, setIsAsuransiValid] = useState(true);
     useEffect(() => {
+        data.nilaiBarang = Math.ceil(data.nilaiBarang*100)/100 || 0;
         if (data.kodeIncoterm === "FOB") {
         const nilaiCif = data.nilaiBarang + data.freight;
         const fobValue = data.nilaiBarang;
@@ -30,7 +31,7 @@ const TransaksiBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: 
 
     const [nilaiPabean, setNilaiPabean] = useState(0);
     useEffect(() => {
-        data.cif = data.nilaiBarang + data.freight + data.asuransi + (data.biayaTambahan - data.biayaPengurang);
+        data.cif = Math.ceil((data.nilaiBarang + data.freight + data.asuransi + (data.biayaTambahan - data.biayaPengurang)) * 100) / 100;
         setData((value: any) => ({ ...value, cif: data.cif }));
         data.fob = data.nilaiBarang + (data.biayaTambahan - data.biayaPengurang);
         setData((value: any) => ({ ...value, fob: data.fob }));
@@ -131,7 +132,7 @@ const TransaksiBC23Page = ({ data = [], setData, setIsComplete, readOnlyView }: 
                 value={data.nilaiBarang}
                 onChange={(val) => setData((prev: any) => ({ ...prev, nilaiBarang: val }))}
                 readonly={readOnlyView}
-                step={0.0001}
+                step={0.01}
             />
         </div>
         <Card.Numeric
